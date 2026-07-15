@@ -6,7 +6,6 @@ import { io, Socket } from "socket.io-client";
 import { format } from "date-fns";
 import { cn } from "./utils";
 import type { User, Message } from "./types";
-import { getAccessToken, googleSignIn } from "./auth";
 
 export default function Chat() {
   const navigate = useNavigate();
@@ -73,20 +72,12 @@ export default function Chat() {
     if (!confirmed) return;
 
     setIsEmailing(true);
-    let accessToken = await getAccessToken();
+    let accessToken = localStorage.getItem("vercel_access_token");
     
+    // In a full implementation we might try to refresh the token if missing or expired,
+    // but here we just prompt them to log in again via Vercel if we don't have it.
     if (!accessToken) {
-       try {
-           const result = await googleSignIn();
-           if (result) accessToken = result.accessToken;
-       } catch (err) {
-           alert("Could not authenticate with Google.");
-           setIsEmailing(false);
-           return;
-       }
-    }
-
-    if (!accessToken) {
+       alert("No Vercel connect token found. Please sign in via Google (Vercel) again.");
        setIsEmailing(false);
        return;
     }

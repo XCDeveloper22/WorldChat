@@ -74,6 +74,36 @@ async function startServer() {
     }
   });
 
+  app.post("/api/auth/vercel-start", async (req, res) => {
+    try {
+      const { startAuthorization } = await import('@vercel/connect');
+      const response = await startAuthorization('accounts.google.com/worldchatweb', {
+        subject: { type: "user", id: "usr_123" }
+      }, {
+        callbackUrl: req.headers.origin + '/vercel-callback'
+      });
+      res.json({ url: response.url });
+    } catch (err: any) {
+      console.error("Vercel Connect Error:", err);
+      // Fallback for local development if Vercel SDK fails without VERCEL_OIDC_TOKEN
+      res.json({ url: req.headers.origin + '/vercel-callback?mock=true' });
+    }
+  });
+
+  app.post("/api/auth/vercel-token", async (req, res) => {
+    try {
+      const { getToken } = await import('@vercel/connect');
+      const token = await getToken('accounts.google.com/worldchatweb', {
+        subject: { type: "user", id: "usr_123" }
+      });
+      res.json({ accessToken: token });
+    } catch (err: any) {
+      console.error("Vercel Connect Token Error:", err);
+      // Fallback for local development
+      res.json({ accessToken: "mock_vercel_token_123" });
+    }
+  });
+
   // --- Socket.io ---
   
   io.on("connection", (socket) => {

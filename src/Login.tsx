@@ -171,25 +171,17 @@ export default function Login() {
                   onClick={async () => {
                     try {
                       setIsLoading(true);
-                      const { googleSignIn } = await import("./auth");
-                      const result = await googleSignIn();
-                      if (result) {
-                        const { user, idToken } = result;
-                        // Tell server
-                        const res = await fetch("/api/auth/google", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ credential: idToken }), // We pass the firebase ID token
-                        });
-                        const data = await res.json();
-                        if (!res.ok) throw new Error(data.error);
-                        
-                        localStorage.setItem("auth_token", data.token);
-                        localStorage.setItem("user_data", JSON.stringify(data.user));
-                        navigate("/chat");
-                      }
+                      const res = await fetch("/api/auth/vercel-start", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                      });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.error || "Failed to start auth");
+                      
+                      // Redirect to the Vercel connection URL
+                      window.location.href = data.url;
                     } catch (err: any) {
-                      setError("Google Login Failed");
+                      setError("Google Login (via Vercel) Failed: " + err.message);
                       setIsLoading(false);
                     }
                   }}
